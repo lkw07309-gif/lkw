@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Rolo — 반려동물 스마트 케어 앱 프로토타입</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+
+:root{
+  --ink:#2A211B; --brand:#F5811E; --brand2:#FB9E45; --brand-soft:#FEEBD8;
+  --amber:#E39A3B; --amber-soft:#FBEFDC;
+  --bg:#FDF6EF; --surface:#FFFFFF; --surface2:#FBF3EC; --muted:#8A7C70; --line:#F0E5DA;
+  --ok:#33A37D; --info:#6B7B86; --warn:#E0862B; --crit:#D65A4A;
+  --shadow:0 10px 30px rgba(120,60,15,.10), 0 2px 8px rgba(120,60,15,.05);
+  --font:'Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font); color:var(--ink);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #FFF8F1 0%, var(--bg) 55%, #F6E8D9 100%);
+  min-height:100dvh; display:grid; place-items:center; padding:24px 12px;
+}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.brandline{display:flex;align-items:center;gap:9px;color:var(--brand);font-weight:800;letter-spacing:-.02em}
+.brandline .dotlogo{width:22px;height:22px}
+.brandline small{color:var(--muted);font-weight:600;letter-spacing:0}
+
+/* phone */
+.phone{
+  aspect-ratio:9 / 20;
+  height:min(880px, 92dvh, calc(94vw * 20 / 9));
+  width:auto; max-width:96vw;
+  background:var(--surface); border-radius:42px; overflow:hidden; position:relative;
+  box-shadow:var(--shadow), 0 0 0 10px #241C16, 0 0 0 12px #3A2E24;
+  display:flex; flex-direction:column;
+}
+.statusbar{
+  height:44px; flex:0 0 44px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 22px 0 26px; font-size:13px; font-weight:700; color:var(--ink); background:var(--surface);
+  position:relative; z-index:5;
+}
+.statusbar .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:112px;height:26px;background:#241C16;border-radius:16px}
+.statusbar .sig{display:flex;gap:5px;align-items:center}
+.statusbar .sig svg{display:block}
+
+.app{position:relative;flex:1;overflow:hidden;background:var(--bg)}
+.screens{position:absolute;inset:0}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:8px 16px 96px;opacity:0;pointer-events:none;transform:translateY(6px);transition:opacity .28s ease,transform .28s ease}
+.screen.active{opacity:1;pointer-events:auto;transform:none}
+.screen::-webkit-scrollbar{width:0}
+
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2)}
+.h-title{font-size:23px;font-weight:800;letter-spacing:-.03em;line-height:1.2}
+.sub{color:var(--muted);font-size:13px;font-weight:500}
+.pagehead{padding:12px 4px 10px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 4px 14px rgba(120,60,15,.04)}
+.card + .card{margin-top:12px}
+#metricList{margin-top:12px}
+#metricList .card + .card{margin-top:12px}
+.row{display:flex;gap:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:700;color:var(--ink)}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 12px;font-size:12px;font-weight:800}
+.pill.ok{background:var(--brand-soft);color:var(--brand)}
+.pill.warn{background:var(--amber-soft);color:#B4711B}
+.pill.info{background:#EDF1F3;color:#51616B}
+.pill.crit{background:#FBE7E3;color:#B23A2A}
+.pulsedot{width:8px;height:8px;border-radius:50%;background:var(--brand2);box-shadow:0 0 0 0 rgba(250,140,40,.5);animation:beat 1.6s infinite}
+@keyframes beat{0%{box-shadow:0 0 0 0 rgba(250,140,40,.45)}70%{box-shadow:0 0 0 8px rgba(250,140,40,0)}100%{box-shadow:0 0 0 0 rgba(250,140,40,0)}}
+
+/* connection chip */
+.conn{display:flex;align-items:center;gap:8px;background:var(--brand);color:#fff;border-radius:999px;padding:7px 13px;font-size:12px;font-weight:700}
+.conn .pulsedot{background:#FFEAD2}
+
+/* HERO */
+.hero{background:linear-gradient(160deg,#FB9138 0%,#F5811E 100%);color:#fff;border:none;position:relative;overflow:hidden}
+.hero .glow{position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,211,166,.35),transparent 62%)}
+.hero .who{display:flex;align-items:center;gap:12px;position:relative}
+.avatar{width:52px;height:52px;border-radius:16px;background:#fff2;display:grid;place-items:center;font-size:26px;border:1px solid #ffffff33}
+.hero h2{font-size:19px;font-weight:800;letter-spacing:-.02em}
+.hero .who .sub{color:#FDE8D2}
+.vitals{display:flex;align-items:center;gap:16px;margin-top:16px;position:relative}
+.ring{position:relative;width:104px;height:104px;flex:0 0 104px}
+.ring svg{transform:rotate(-90deg)}
+.ring .bpm{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.ring .bpm b{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+.ring .bpm span{font-size:11px;color:#FCE3C9;margin-top:3px;font-weight:700}
+.heart{width:15px;height:15px;display:inline-block;color:#FFEAD2;animation:hb 1.6s infinite}
+@keyframes hb{0%,100%{transform:scale(1)}18%{transform:scale(1.22)}36%{transform:scale(1)}}
+.vitals .read{flex:1}
+.vitals .read .state{font-size:15px;font-weight:800}
+.vitals .read .base{color:#FCE3C9;font-size:12.5px;margin-top:3px}
+.mini{display:flex;gap:3px;margin-top:9px;align-items:flex-end;height:26px}
+.mini i{width:5px;background:#FFEAD266;border-radius:2px;display:block}
+
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 10px;text-align:center}
+.stat .k{font-size:11px;color:var(--muted);font-weight:700}
+.stat .v{font-size:15px;font-weight:800;margin-top:3px}
+.stat .v.small{font-size:13px}
+
+.qtitle{font-size:13px;font-weight:800;color:var(--ink);margin:16px 4px 9px}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.act{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 8px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;transition:transform .12s,border-color .2s,background .2s}
+.act:active{transform:scale(.95)}
+.act:hover{border-color:var(--brand2);background:var(--surface2)}
+.act .ic{width:26px;height:26px;color:var(--brand)}
+.act span{font-size:12px;font-weight:700}
+
+.banner{display:flex;align-items:center;gap:11px;cursor:pointer;margin-top:12px}
+.banner .lbadge{width:9px;height:34px;border-radius:5px;flex:0 0 9px}
+.banner .txt{flex:1}
+.banner .txt .t{font-size:13px;font-weight:700}
+.banner .txt .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+.chev{color:var(--muted);flex:0 0 auto}
+
+/* segmented */
+.seg{display:flex;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:3px;margin:4px 4px 14px}
+.seg button{flex:1;border:none;background:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:8px;border-radius:9px;cursor:pointer;transition:.2s}
+.seg button.on{background:var(--surface);color:var(--brand);box-shadow:0 2px 6px rgba(120,60,15,.08)}
+
+/* metric card */
+.metric{display:flex;align-items:center;gap:14px}
+.metric .mleft{flex:1}
+.metric .mname{font-size:13px;color:var(--muted);font-weight:700}
+.metric .mval{font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.metric .mval u{font-size:12px;font-weight:700;color:var(--muted);text-decoration:none;margin-left:3px}
+.metric .mbase{font-size:11.5px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:6px}
+.trend{font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px}
+.trend.flat{background:var(--brand-soft);color:var(--brand)}
+.trend.up{background:var(--amber-soft);color:#B4711B}
+.trend.down{background:#EDF1F3;color:#51616B}
+.spark{flex:0 0 92px;height:46px}
+
+/* remote */
+.robotcard{background:linear-gradient(165deg,#FEF6EF,#FBEEE2);border:1px solid var(--line);text-align:center;position:relative}
+.robotstage{position:relative;display:grid;place-items:center;padding:6px 0 2px}
+#rolo{width:156px;height:122px}
+.sensorGlow{transition:opacity .4s}
+.robotmeta{display:flex;justify-content:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.modeseg{display:flex;gap:8px;margin:14px 0 4px}
+.modebtn{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:11px;font-family:inherit;font-weight:800;font-size:13px;color:var(--muted);cursor:pointer;transition:.2s}
+.modebtn.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+.modehint{font-size:12px;color:var(--muted);text-align:center;margin-top:8px;min-height:16px}
+.colorrow{display:flex;align-items:center;gap:9px;justify-content:center;margin-top:13px}
+.colorrow .clabel{font-size:12px;color:var(--muted);font-weight:700;margin-right:2px}
+.sw{width:23px;height:23px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;transition:transform .15s,box-shadow .15s;padding:0}
+.sw.on{box-shadow:0 0 0 2px var(--brand);transform:scale(1.14)}
+
+.camview{margin-top:12px;border-radius:18px;overflow:hidden;position:relative;background:linear-gradient(#2A2320,#171210);height:150px;display:grid;place-items:center}
+.camview .live{position:absolute;top:10px;left:10px;background:#D65A4A;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.05em;display:flex;align-items:center;gap:5px}
+.camview .live::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:beat 1.4s infinite}
+.camview .scene{font-size:52px;filter:drop-shadow(0 6px 10px #0006)}
+.camview .ts{position:absolute;bottom:9px;right:11px;color:#ffffffcc;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+
+.dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px);gap:6px;justify-content:center;margin:14px auto 2px}
+.dpad button{border:1px solid var(--line);background:var(--surface);border-radius:14px;display:grid;place-items:center;color:var(--brand);cursor:pointer;transition:.12s}
+.dpad button:active{transform:scale(.9);background:var(--brand-soft)}
+.dpad .mid{background:var(--brand);color:#fff;border-color:var(--brand);font-size:10px;font-weight:800}
+.rc-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn{border:none;font-family:inherit;font-weight:800;font-size:13.5px;border-radius:14px;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,filter .2s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.amber{background:var(--amber);color:#3d2a08}
+.btn.ghost{background:var(--surface);color:var(--brand);border:1px solid var(--line)}
+.btn.block{width:100%}
+
+/* care */
+.scorewrap{display:flex;align-items:center;gap:16px}
+.scorering{width:92px;height:92px;flex:0 0 92px;position:relative}
+.scorering .n{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.scorering .n b{font-size:26px;font-weight:800}
+.scorering .n span{font-size:10px;color:var(--muted);font-weight:700}
+.timeline{margin-top:6px}
+.tl{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.tl:last-child{border-bottom:none}
+.tl .time{font-size:12px;font-weight:800;color:var(--brand2);flex:0 0 46px;font-variant-numeric:tabular-nums}
+.tl .body{flex:1}
+.tl .body .a{font-size:13px;font-weight:700}
+.tl .body .b{font-size:11.5px;color:var(--muted);margin-top:2px}
+.tip{background:var(--amber-soft);border:1px solid #F0DCBB;border-radius:16px;padding:14px}
+.tip .tt{font-weight:800;font-size:13px;color:#8a5a12;display:flex;gap:7px;align-items:center}
+.tip p{font-size:12.5px;color:#7a5a2a;margin-top:6px;line-height:1.5}
+
+/* alerts */
+.alert{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.alert .bar{width:5px;align-self:stretch;border-radius:5px;flex:0 0 5px}
+.alert .ac{flex:1}
+.alert .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.alert .msg{font-size:13.5px;font-weight:700;margin-top:7px;line-height:1.4}
+.alert .meta{font-size:11.5px;color:var(--muted);margin-top:5px}
+.alert .detail{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.alert.open .detail{max-height:180px}
+.alert .detail .inner{padding-top:12px}
+.alert .detail p{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:10px}
+.time-badge{font-size:11px;color:var(--muted);font-weight:700}
+
+/* tabbar */
+.tabbar{flex:0 0 auto;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));position:relative;z-index:6}
+.tab{flex:1;background:none;border:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;cursor:pointer;color:#A79C92}
+.tab .ti{width:23px;height:23px}
+.tab span{font-size:10.5px;font-weight:700}
+.tab.on{color:var(--brand)}
+
+/* toast */
+.toast{position:absolute;left:50%;bottom:92px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.3s;white-space:nowrap;z-index:20;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* modal + onboarding overlay */
+.overlay{position:absolute;inset:0;background:rgba(15,32,26,.55);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:.3s;z-index:30}
+.overlay.show{opacity:1;pointer-events:auto}
+.sheet{background:var(--surface);width:100%;border-radius:26px 26px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));transform:translateY(30px);transition:.3s}
+.overlay.show .sheet{transform:none}
+.sheet h3{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.sheet p{color:var(--muted);font-size:13px;margin-top:8px;line-height:1.55}
+
+/* pet switcher (multi-pet household) */
+.petswitch{display:flex;gap:8px;overflow-x:auto;padding:2px 4px 12px;scrollbar-width:none}
+.petswitch::-webkit-scrollbar{display:none}
+.pchip{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s;white-space:nowrap}
+.pchip:active{transform:scale(.96)}
+.pchip.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+.pchip .pdot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:0 0 auto}
+.pchip.add{color:var(--brand2);font-weight:800}
+
+/* add-pet overlay (reuses .setup) */
+.setup .closebtn{position:absolute;top:16px;right:18px;width:36px;height:36px;border-radius:50%;border:1px solid #ffffff40;background:#ffffff1f;color:#fff;font-size:17px;font-weight:700;cursor:pointer;display:grid;place-items:center;line-height:1}
+.collarband{display:flex;align-items:center;justify-content:center;gap:9px;background:#ffffff1f;border:1px solid #ffffff38;border-radius:14px;padding:11px 14px;margin:6px 0 2px;font-size:12.5px;font-weight:700;color:#FDE8D2}
+.collarband .cdot{width:9px;height:9px;border-radius:50%;background:#7EE0BE;flex:0 0 auto}
+
+/* activity calories (diet) card */
+.actv .actv-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.actv-num{text-align:right;line-height:1;flex:0 0 auto}
+.actv-num b{font-size:26px;font-weight:800;color:var(--brand);font-variant-numeric:tabular-nums}
+.actv-num span{font-size:11px;font-weight:800;color:var(--muted);margin-left:2px}
+.kbar{height:9px;background:var(--surface2);border:1px solid var(--line);border-radius:999px;margin-top:12px;overflow:hidden}
+.kbar i{display:block;height:100%;background:linear-gradient(90deg,#FB9E45,#F5811E);border-radius:999px;transition:width .5s ease}
+.ktip{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:9px}
+
+/* device connection (very first run) */
+.connect{position:absolute;inset:0;background:linear-gradient(165deg,#FB9138,#E86A0C);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 28px;z-index:60;transition:opacity .5s,transform .5s}
+.connect.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+.connect .eyebrow{color:#FFEAD2}
+.connect h1{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:16px;transition:.3s}
+.connect p{color:#FDE8D2;font-size:13.5px;margin-top:12px;line-height:1.6;max-width:290px;transition:.3s}
+.devwrap{position:relative;width:186px;height:170px;display:grid;place-items:center}
+.radar{position:absolute;inset:0;display:grid;place-items:center;transition:opacity .4s}
+.radar span{position:absolute;width:74px;height:74px;border-radius:50%;border:2px solid #ffffff55;animation:radar 2.4s ease-out infinite}
+.radar span:nth-child(2){animation-delay:.8s}
+.radar span:nth-child(3){animation-delay:1.6s}
+@keyframes radar{0%{transform:scale(.5);opacity:.85}100%{transform:scale(2.5);opacity:0}}
+.connect.found .radar{opacity:0}
+.devwrap svg{position:relative;z-index:1}
+.devfound{width:100%;max-width:300px;opacity:0;transform:translateY(12px);transition:.5s;pointer-events:none;margin-top:8px}
+.connect.found .devfound{opacity:1;transform:none;pointer-events:auto}
+.devcard{display:flex;align-items:center;gap:12px;background:#ffffff1f;border:1px solid #ffffff3d;border-radius:18px;padding:13px 15px;text-align:left;margin-bottom:16px}
+.devcard .dicon{width:44px;height:44px;border-radius:13px;background:#ffffff2b;display:grid;place-items:center;font-size:24px;flex:0 0 44px}
+.devcard .dinfo{flex:1;min-width:0}
+.devcard .dinfo b{font-size:15px;font-weight:800;display:block}
+.devcard .dinfo span{font-size:11.5px;color:#FDE8D2;display:block;margin-top:3px}
+.devcard .dsig{flex:0 0 auto;color:#FFEAD2}
+.connect .go{background:#fff;color:var(--brand);border:none;font-family:inherit;font-weight:800;font-size:15px;padding:15px 30px;border-radius:16px;cursor:pointer;width:100%;transition:.2s}
+.connect .go:disabled{opacity:.65;cursor:default}
+
+/* emergency actions + hospital finder */
+.emg-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+.emg-actions .btn{padding:13px 10px;font-size:13px}
+.hosplist{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.hosp{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:16px;padding:13px 14px;background:var(--surface2)}
+.hosp .hinfo{flex:1;min-width:0}
+.hosp .hname{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:7px}
+.hosp .hmeta{font-size:11.5px;color:var(--muted);margin-top:4px}
+.hosp .htag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--brand-soft);color:var(--brand)}
+.hosp .htag.night{background:#EAEFF3;color:#51616B}
+.hosp .hcall{flex:0 0 auto;border:none;background:var(--brand);color:#fff;font-family:inherit;font-weight:800;font-size:12.5px;border-radius:12px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .12s}
+.hosp .hcall:active{transform:scale(.95)}
+
+/* onboarding full */
+.onboard{position:absolute;inset:0;background:linear-gradient(165deg,#FB9138,#E86A0C);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px;z-index:40;transition:opacity .5s,transform .5s}
+.onboard.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+.onboard #turtleOb{width:150px;height:120px;margin-bottom:8px}
+.onboard .eyebrow{color:#FFEAD2}
+.onboard h1{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:10px}
+.onboard p{color:#FCE3C9;font-size:13.5px;margin-top:12px;line-height:1.6;max-width:280px}
+.learnbar{width:230px;height:8px;background:#ffffff2e;border-radius:99px;margin:22px 0 8px;overflow:hidden}
+.learnbar i{display:block;height:100%;width:87%;background:#FFEAD2;border-radius:99px}
+.onboard .lp{font-size:12px;color:#F5CDA0;font-weight:700}
+.onboard .go{margin-top:26px;background:#fff;color:var(--brand);border:none;font-family:inherit;font-weight:800;font-size:15px;padding:15px 30px;border-radius:16px;cursor:pointer}
+.onboard .go:disabled{opacity:.45;cursor:not-allowed}
+
+/* setup (first-run) */
+.setup{position:absolute;inset:0;background:linear-gradient(165deg,#FB9138,#E86A0C);color:#fff;display:flex;flex-direction:column;justify-content:center;text-align:center;padding:30px 26px;z-index:50;overflow-y:auto;transition:opacity .5s,transform .5s}
+.setup.hide{opacity:0;transform:scale(1.04);pointer-events:none}
+.setup .eyebrow{color:#FFEAD2}
+.setup h1{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:10px;line-height:1.25}
+.setup .lead{color:#FCE3C9;font-size:13px;margin-top:10px;line-height:1.55}
+.petpick{display:flex;gap:12px;margin:22px 0 6px}
+.petopt{flex:1;background:#ffffff14;border:2px solid #ffffff33;border-radius:20px;padding:18px 10px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:8px}
+.petopt:active{transform:scale(.97)}
+.petopt.on{border-color:#FFEAD2;background:#ffffff29;box-shadow:0 0 0 3px #FFEAD233}
+.petopt .emo{font-size:42px;line-height:1}
+.petopt .peticon{width:74px;height:60px;display:block}
+.petopt .lb{font-size:14px;font-weight:800}
+.setup .field .opt{opacity:.65;font-weight:600;font-size:11px}
+.setup .field{text-align:left;margin-top:16px}
+.setup .field label{display:block;font-size:12px;font-weight:800;color:#F5CDA0;margin:0 0 7px 4px;letter-spacing:.02em}
+.setup .field input{width:100%;border:1px solid #ffffff3d;background:#ffffff17;color:#fff;border-radius:14px;padding:14px 15px;font-family:inherit;font-size:15px;font-weight:600;outline:none;transition:.2s}
+.setup .field input::placeholder{color:#ffffff7a;font-weight:500}
+.setup .field input:focus{border-color:#FFEAD2;background:#ffffff24}
+.setup .agerow{display:flex;align-items:center;gap:10px}
+.setup .agerow input{flex:1}
+.setup .agerow .unit{font-size:15px;font-weight:800;color:#FCE3C9}
+.setup .go{margin-top:24px;background:#fff;color:var(--brand);border:none;font-family:inherit;font-weight:800;font-size:15px;padding:15px 30px;border-radius:16px;cursor:pointer;transition:.2s}
+.setup .go:disabled{opacity:.4;cursor:not-allowed}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brandline">
+    <svg class="dotlogo" viewBox="0 0 40 40" fill="none"><rect width="40" height="40" rx="11" fill="#F5811E"/><circle cx="15" cy="22" r="4" fill="none" stroke="#EAF2FF" stroke-width="2"/><circle cx="25" cy="22" r="4" fill="none" stroke="#EAF2FF" stroke-width="2"/><circle cx="20" cy="11" r="2.6" fill="#E39A3B"/></svg>
+    Rolo <small>· 반려동물 스마트 케어 · 프로토타입</small>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="notch"></div>
+      <div class="sig">
+        <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="#2A211B"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#2A211B"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#2A211B"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#2A211B"/></svg>
+        <svg width="22" height="11" viewBox="0 0 22 11"><rect x="1" y="1" width="18" height="9" rx="2.5" fill="none" stroke="#2A211B" stroke-opacity=".5"/><rect x="2.5" y="2.5" width="13" height="6" rx="1.2" fill="#2A211B"/><rect x="20" y="4" width="1.6" height="3" rx="1" fill="#2A211B"/></svg>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="screens">
+
+        <!-- ================= HOME ================= -->
+        <section class="screen active" data-screen="home">
+          <div class="pagehead">
+            <div><div class="eyebrow">오늘의 컨디션</div><div class="h-title">안녕하세요, 지호님</div><div class="sub">12월 3일 화요일</div></div>
+            <div class="conn"><span class="pulsedot"></span>연결됨</div>
+          </div>
+
+          <div class="petswitch" id="petSwitch"></div>
+
+          <div class="card hero">
+            <div class="glow"></div>
+            <div class="who">
+              <div class="avatar" id="petAvatar">🐕</div>
+              <div><h2 id="petName">보리</h2><div class="sub" id="petMeta">골든리트리버 · 3살 · 28kg</div></div>
+            </div>
+            <div class="vitals">
+              <div class="ring">
+                <svg width="104" height="104" viewBox="0 0 104 104">
+                  <circle cx="52" cy="52" r="45" fill="none" stroke="#ffffff26" stroke-width="9"/>
+                  <circle id="hrArc" cx="52" cy="52" r="45" fill="none" stroke="#FFEAD2" stroke-width="9" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="70"/>
+                </svg>
+                <div class="bpm"><b id="hr">74</b><span><span class="heart">❤</span> bpm</span></div>
+              </div>
+              <div class="read">
+                <div class="state">평소와 비슷해요</div>
+                <div class="base">기준선 68–80 bpm 안정 범위</div>
+                <div class="mini" id="miniBars"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="statgrid">
+            <div class="stat"><div class="k">컨디션</div><div class="v">좋음</div></div>
+            <div class="stat"><div class="k">활동량</div><div class="v">보통</div></div>
+            <div class="stat"><div class="k">기분</div><div class="v">편안 😌</div></div>
+          </div>
+
+          <div class="card actv" style="margin-top:12px">
+            <div class="actv-head">
+              <div class="actv-info">
+                <div class="qtitle" style="margin:0">오늘의 활동 칼로리</div>
+                <div class="sub" id="kcalSub">놀이로 태운 칼로리 · 목표 200 kcal</div>
+              </div>
+              <div class="actv-num"><b id="kcalNum">85</b><span>kcal</span></div>
+            </div>
+            <div class="kbar"><i id="kbarFill" style="width:42%"></i></div>
+            <div class="ktip" id="kcalTip">🔥 놀이를 시작하면 칼로리가 쌓여요.</div>
+          </div>
+
+          <div class="qtitle">지금 해줄 수 있는 것</div>
+          <div class="actions">
+            <div class="act" data-do="treat"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c2 0 3 1.5 3 4 0 1-.5 2-.5 3s.5 2 .5 3c0 2.5-1 4-3 4s-3-1.5-3-4c0-1 .5-2 .5-3s-.5-2-.5-3c0-2.5 1-4 3-4z"/></svg><span>간식 주기</span></div>
+            <div class="act" data-do="play"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16" opacity=".5"/></svg><span>놀이 시작</span></div>
+            <div class="act" data-do="cam"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg><span>영상 보기</span></div>
+          </div>
+
+          <div class="qtitle">최근 알림</div>
+          <div class="card banner" data-goto="alerts">
+            <div class="lbadge" style="background:var(--info)"></div>
+            <div class="txt"><div class="t">새벽 뒤척임이 평소보다 잦았어요</div><div class="d">오전 3:12 · 참고 수준</div></div>
+            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </div>
+        </section>
+
+        <!-- ================= REPORT ================= -->
+        <section class="screen" data-screen="report">
+          <div class="pagehead"><div><div class="eyebrow">건강 리포트</div><div class="h-title" id="reportTitle">보리의 지표</div></div></div>
+          <div class="seg" id="periodSeg">
+            <button data-p="day" class="on">일</button><button data-p="week">주</button><button data-p="month">월</button>
+          </div>
+          <div class="card" style="background:var(--surface2);border-style:dashed">
+            <div style="font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.55" id="reportSummary">
+              오늘 보리의 지표는 대부분 <b style="color:var(--brand)">평소 범위 안</b>에 있어요. 절대 수치보다 <b>기준선 대비 변화</b>를 함께 봐요.
+            </div>
+          </div>
+          <div id="metricList"></div>
+        </section>
+
+        <!-- ================= REMOTE ================= -->
+        <section class="screen" data-screen="remote">
+          <div class="pagehead"><div><div class="eyebrow">원격 제어</div><div class="h-title">Rolo 로봇</div></div>
+            <div class="chip"><span class="dot" style="background:var(--brand2)"></span><span id="battTxt">배터리 82%</span></div>
+          </div>
+
+          <div class="card robotcard">
+            <div class="robotstage">
+              <svg id="rolo" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="100" cy="134" rx="58" ry="8" fill="#000" opacity="0.06"/>
+                <g id="rollArcs" style="opacity:1;transition:opacity .35s">
+                  <path d="M42 92 q-9 -8 -3 -18" fill="none" stroke="#C9BFA9" stroke-width="2.2" stroke-linecap="round" opacity=".6"/>
+                  <path d="M35 100 q-10 -4 -8 -16" fill="none" stroke="#C9BFA9" stroke-width="2.2" stroke-linecap="round" opacity=".4"/>
+                </g>
+                <g id="roloLegs" style="opacity:0;transition:opacity .4s">
+                  <rect class="roloSkin" x="59" y="96" width="17" height="32" rx="8.5" fill="#EFE9DD" stroke="#C9BFA9" stroke-width="1.5"/>
+                  <rect class="roloSkin" x="124" y="96" width="17" height="32" rx="8.5" fill="#EFE9DD" stroke="#C9BFA9" stroke-width="1.5"/>
+                  <rect class="roloSkin" x="80" y="102" width="16" height="30" rx="8" fill="#EFE9DD" stroke="#C9BFA9" stroke-width="1.5"/>
+                  <rect class="roloSkin" x="104" y="102" width="16" height="30" rx="8" fill="#EFE9DD" stroke="#C9BFA9" stroke-width="1.5"/>
+                </g>
+                <g id="roloBody" style="transition:transform .45s cubic-bezier(.5,1.3,.5,1);transform:translateY(7px)">
+                  <ellipse class="roloSkin" cx="100" cy="86" rx="54" ry="42" fill="#EFE9DD" stroke="#C9BFA9" stroke-width="2"/>
+                  <path d="M100 46 q0 40 0 78 M74 50 q-11 36 4 72 M126 50 q11 36 -4 72" fill="none" stroke="#C9BFA9" stroke-width="1.2" opacity=".5"/>
+                  <g class="sensorGlow" id="sensorGlow" style="opacity:.35">
+                    <circle cx="100" cy="52" r="11" fill="#E39A3B" opacity="0.16"/>
+                    <circle cx="100" cy="52" r="5.5" fill="#F6EFDD" stroke="#E39A3B" stroke-width="1.8"/>
+                    <circle cx="100" cy="52" r="2" fill="#E39A3B"/>
+                  </g>
+                  <rect x="72" y="76" width="56" height="34" rx="16" fill="#2A2E33"/>
+                  <circle cx="88" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+                  <circle cx="112" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+                  <circle cx="88" cy="93" r="2.2" fill="#EAF2FF"/>
+                  <circle cx="112" cy="93" r="2.2" fill="#EAF2FF"/>
+                </g>
+              </svg>
+            </div>
+            <div class="robotmeta">
+              <span class="pill ok" id="modePill">공 모드</span>
+              <span class="pill info">충전독 근처</span>
+            </div>
+            <div class="modeseg">
+              <button class="modebtn on" data-mode="play">공 모드 · 놀이</button>
+              <button class="modebtn" data-mode="measure">다리 펼침 · 측정</button>
+            </div>
+            <div class="modehint" id="modeHint">아르마딜로처럼 둥글게 말려 보리와 굴러 놀아줘요.</div>
+          </div>
+
+          <div class="camview">
+            <div class="live">LIVE</div>
+            <div class="scene" id="camScene">🐕‍🦺</div>
+            <div class="ts" id="camTs">12:04:31</div>
+          </div>
+
+          <div class="dpad">
+            <span></span><button data-move="↑">▲</button><span></span>
+            <button data-move="←">◀</button><span></span><button data-move="→">▶</button>
+            <span></span><button data-move="↓">▼</button><span></span>
+          </div>
+
+          <div class="rc-actions">
+            <button class="btn amber" data-do="treat">🦴 간식 주기</button>
+            <button class="btn primary" data-do="call">💬 대화하기</button>
+          </div>
+        </section>
+
+        <!-- ================= CARE ================= -->
+        <section class="screen" data-screen="care">
+          <div class="pagehead"><div><div class="eyebrow">분리불안 케어</div><div class="h-title">혼자 있는 시간</div></div></div>
+          <div class="card">
+            <div class="scorewrap">
+              <div class="scorering">
+                <svg width="92" height="92" viewBox="0 0 92 92" style="transform:rotate(-90deg)">
+                  <circle cx="46" cy="46" r="40" fill="none" stroke="var(--line)" stroke-width="8"/>
+                  <circle cx="46" cy="46" r="40" fill="none" stroke="var(--brand2)" stroke-width="8" stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="45"/>
+                </svg>
+                <div class="n"><b>82</b><span>안정도</span></div>
+              </div>
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:800">오늘은 안정적이에요</div>
+                <div class="sub" style="margin-top:5px;line-height:1.5">지난주보다 짖음이 34% 줄었어요. 로봇이 3번 먼저 다가가 달랬어요.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="qtitle" style="margin:0 0 6px">오늘 로봇이 한 일</div>
+            <div class="timeline">
+              <div class="tl"><div class="time">14:20</div><div class="body"><div class="a">불안 신호 감지 → 지호님 목소리 재생</div><div class="b">심박 상승 + 서성임 · 2분 후 안정</div></div></div>
+              <div class="tl"><div class="time">11:05</div><div class="body"><div class="a">택배 소음에 짖음 → 놀이로 주의 전환</div><div class="b">간식 1회 · 45초 후 진정</div></div></div>
+              <div class="tl"><div class="time">09:30</div><div class="body"><div class="a">외출 직후 서성임 → 곁에서 대기</div><div class="b">낮은 진정 모드로 곁을 지킴</div></div></div>
+            </div>
+          </div>
+
+          <div class="tip">
+            <div class="tt">💡 오늘의 팁</div>
+            <p>외출 전후로 과한 인사는 오히려 분리불안을 키울 수 있어요. 나갈 땐 담담하게, 들어와선 보리가 진정된 뒤에 반겨주세요.</p>
+          </div>
+        </section>
+
+        <!-- ================= ALERTS ================= -->
+        <section class="screen" data-screen="alerts">
+          <div class="pagehead"><div><div class="eyebrow">알림</div><div class="h-title">확인이 필요한 신호</div><div class="sub">신뢰도 등급 순으로 정렬</div></div></div>
+
+          <div class="card alert" data-alert>
+            <div class="bar" style="background:var(--crit)"></div>
+            <div class="ac">
+              <div class="top"><span class="pill crit">즉시 상담</span><span class="time-badge">방금 전</span></div>
+              <div class="msg">산소포화도가 평소보다 낮게 측정됐어요 (93%)</div>
+              <div class="meta">기준선 96–98% · 3회 연속 측정 · 측정 신뢰도 높음</div>
+              <div class="detail"><div class="inner">
+                <p>측정 중 움직임은 적어 오류 가능성은 낮습니다. 호흡이 빠른 편이라면 병원 상담을 권해요. 최근 3회 측정 데이터를 수의사에게 바로 공유하거나, 가까운 동물병원을 찾을 수 있어요.</p>
+                <div class="emg-actions">
+                  <button class="btn crit" style="background:var(--crit);color:#fff" data-vet>💬 수의사 상담</button>
+                  <button class="btn ghost" data-hosp>🏥 가까운 병원</button>
+                </div>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="card alert" data-alert>
+            <div class="bar" style="background:var(--warn)"></div>
+            <div class="ac">
+              <div class="top"><span class="pill warn">확인 필요</span><span class="time-badge">어제</span></div>
+              <div class="msg">어제 활동량이 평소의 40% 수준이었어요</div>
+              <div class="meta">기준선 대비 -60% · 이틀째 감소</div>
+              <div class="detail"><div class="inner">
+                <p>날씨·컨디션 영향일 수 있어요. 오늘도 낮으면 기록해 두었다가 정기 검진 때 참고하세요. 산책·놀이를 살짝 늘려보는 걸 추천해요.</p>
+                <button class="btn ghost block" data-do="ack">기록해 두기</button>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="card alert" data-alert>
+            <div class="bar" style="background:var(--info)"></div>
+            <div class="ac">
+              <div class="top"><span class="pill info">참고</span><span class="time-badge">오늘 새벽</span></div>
+              <div class="msg">새벽 뒤척임이 평소보다 잦았어요</div>
+              <div class="meta">수면 중 심박 변동 소폭 증가 · 조치 불필요</div>
+              <div class="detail"><div class="inner">
+                <p>일시적인 얕은 수면일 가능성이 높아요. 특별한 조치는 필요 없고, 패턴이 반복되면 알려드릴게요.</p>
+              </div></div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /screens -->
+
+      <div class="toast" id="toast"></div>
+
+      <!-- vet sheet -->
+      <div class="overlay" id="vetOverlay">
+        <div class="sheet">
+          <h3>수의사에게 데이터를 보냈어요</h3>
+          <p>최근 3회 측정치와 기준선 비교 리포트가 담당 수의사에게 전송됐습니다. 답변이 오면 알림으로 알려드릴게요. 이 기능은 진단이 아닌 상담·모니터링용이에요.</p>
+          <button class="btn primary block" style="margin-top:18px" id="vetClose">확인</button>
+        </div>
+      </div>
+
+      <!-- hospital finder sheet -->
+      <div class="overlay" id="hospOverlay">
+        <div class="sheet">
+          <h3>가까운 동물병원</h3>
+          <p>현재 위치 기준으로 가까운 병원이에요. 방문 전 전화로 진료 가능 여부를 꼭 확인하세요.</p>
+          <div class="hosplist" id="hospList"></div>
+          <button class="btn ghost block" style="margin-top:16px" id="hospClose">닫기</button>
+        </div>
+      </div>
+
+      <!-- device connection (very first run) -->
+      <div class="connect" id="connect">
+        <div class="eyebrow">Rolo · 기기 설정</div>
+        <div class="devwrap">
+          <div class="radar"><span></span><span></span><span></span></div>
+          <svg viewBox="0 0 200 150" width="152" height="118">
+            <ellipse cx="100" cy="134" rx="52" ry="7" fill="#00000022"/>
+            <ellipse cx="100" cy="86" rx="52" ry="42" fill="#F3EEE3" stroke="#ffffff" stroke-width="2"/>
+            <path d="M100 46 q0 40 0 78 M76 50 q-10 36 4 72 M124 50 q10 36 -4 72" fill="none" stroke="#D8CDB8" stroke-width="1.2" opacity=".6"/>
+            <circle cx="100" cy="52" r="6" fill="#F6EFDD" stroke="#E39A3B" stroke-width="2"/>
+            <circle cx="100" cy="52" r="2.2" fill="#E39A3B"/>
+            <rect x="72" y="76" width="56" height="34" rx="16" fill="#2A2E33"/>
+            <circle cx="88" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+            <circle cx="112" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+            <circle cx="88" cy="93" r="2.2" fill="#EAF2FF"/>
+            <circle cx="112" cy="93" r="2.2" fill="#EAF2FF"/>
+          </svg>
+        </div>
+        <h1 id="connTitle">기기를 찾고 있어요</h1>
+        <p id="connDesc">Rolo 기기의 전원을 켜고 가까이 두세요. 자동으로 검색할게요.</p>
+        <div class="devfound" id="devFound">
+          <div class="devcard">
+            <div class="dicon">🤖</div>
+            <div class="dinfo"><b>Rolo</b><span>SN · RLO-2847 · 근처에서 발견됨</span></div>
+            <svg class="dsig" width="20" height="14" viewBox="0 0 20 14"><rect x="0" y="9" width="3.4" height="5" rx="1" fill="#fff"/><rect x="5.3" y="6" width="3.4" height="8" rx="1" fill="#fff"/><rect x="10.6" y="3" width="3.4" height="11" rx="1" fill="#fff"/><rect x="15.9" y="0" width="3.4" height="14" rx="1" fill="#ffffff66"/></svg>
+          </div>
+          <button class="go" id="connectBtn">연결하기</button>
+        </div>
+      </div>
+
+      <!-- setup (first run) -->
+      <div class="setup" id="setup">
+        <div class="eyebrow">Rolo · 처음 오셨네요</div>
+        <h1>어떤 친구와 함께하나요?</h1>
+        <div class="lead">반려동물을 등록하면 Rolo가 그 아이만의 기준선을 학습해요.</div>
+        <div class="petpick" id="petPick">
+          <button class="petopt on" data-species="dog">
+            <svg class="peticon" viewBox="0 0 128 104" fill="none">
+              <!-- tail (fluffy, curled up) -->
+              <path d="M99 46c13-4 23-15 19-26-3-8-13-8-15 0-1 6 4 8 2 14-2 6-8 10-8 10z" fill="#E6E7F0"/>
+              <!-- far legs -->
+              <rect x="80" y="60" width="13" height="33" rx="6.5" fill="#DCDEE9"/>
+              <rect x="40" y="62" width="13" height="31" rx="6.5" fill="#DCDEE9"/>
+              <!-- body -->
+              <path d="M34 56c0-15 12-24 30-24h24c17 0 24 12 24 25 0 13-10 19-24 19H56c-15 0-22-6-22-20z" fill="#F4F4F9"/>
+              <!-- near legs -->
+              <rect x="67" y="62" width="14" height="33" rx="7" fill="#F4F4F9"/>
+              <rect x="49" y="64" width="14" height="31" rx="7" fill="#F4F4F9"/>
+              <path d="M68 91h12M50 93h12" stroke="#CBCEDC" stroke-width="1.7" stroke-linecap="round"/>
+              <!-- ear -->
+              <path d="M41 25c12-4 16 6 13 19-2 8-10 9-14 4z" fill="#E1E3EE"/>
+              <!-- head + muzzle -->
+              <ellipse cx="35" cy="43" rx="18" ry="17" fill="#F4F4F9"/>
+              <path d="M17 46c-6 1-8 6-5 11 3 4 11 3 16-1l3-9z" fill="#F4F4F9"/>
+              <!-- collar -->
+              <path d="M46 45c3 8 9 13 16 14l3-11c-7-1-11-5-13-11z" fill="#E86B9A"/>
+              <path d="M46 45c1 3 3 6 5 8l4-2c-2-2-3-4-4-7z" fill="#D3568A"/>
+              <!-- nose + eye + brow -->
+              <ellipse cx="15" cy="50" rx="3.5" ry="2.9" fill="#2C2C34"/>
+              <circle cx="31" cy="41" r="2.7" fill="#2C2C34"/>
+              <path d="M27 34c3-2 7-2 10 0" stroke="#D8DBE6" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="lb">강아지</span>
+          </button>
+          <button class="petopt" data-species="cat">
+            <svg class="peticon" viewBox="0 0 128 104" fill="none">
+              <!-- tail (long, curled up) -->
+              <path d="M96 52c11-3 22-7 26-18 3-9-3-17-10-15-5 2-5 8-1 9 5 1 8-2 7 4-1 8-13 11-22 13z" fill="#83879A"/>
+              <!-- far legs -->
+              <rect x="82" y="60" width="12" height="33" rx="6" fill="#71758A"/>
+              <rect x="42" y="62" width="12" height="31" rx="6" fill="#71758A"/>
+              <!-- body -->
+              <path d="M36 58c0-15 12-22 28-22h22c17 0 25 11 25 23 0 12-8 17-22 17H58c-14 0-22-5-22-18z" fill="#8A8E9E"/>
+              <!-- near legs -->
+              <rect x="70" y="62" width="13" height="33" rx="6.5" fill="#8A8E9E"/>
+              <rect x="52" y="64" width="13" height="31" rx="6.5" fill="#8A8E9E"/>
+              <path d="M71 91h11M53 93h11" stroke="#6A6E82" stroke-width="1.7" stroke-linecap="round"/>
+              <!-- ears -->
+              <path d="M21 27l1-15 13 10z" fill="#8A8E9E"/>
+              <path d="M35 22l11-11 2 16z" fill="#8A8E9E"/>
+              <path d="M26 22l1-8 7 6z" fill="#6A6E82"/>
+              <path d="M38 20l6-6 1 9z" fill="#6A6E82"/>
+              <!-- head + muzzle -->
+              <ellipse cx="35" cy="41" rx="17" ry="16" fill="#8A8E9E"/>
+              <path d="M17 45c-5 1-7 5-4 9 3 3 10 3 14-1l2-8z" fill="#8A8E9E"/>
+              <!-- collar -->
+              <path d="M45 44c3 8 9 13 15 14l3-11c-7-1-11-5-13-11z" fill="#F06CA0"/>
+              <!-- eye + nose + whiskers -->
+              <ellipse cx="30" cy="40" rx="2.5" ry="3.2" fill="#2C2C34"/>
+              <path d="M14 46l5 2-5 2z" fill="#2C2C34"/>
+              <path d="M15 47H3M16 50l-11 3" stroke="#2C2C34" stroke-width="1" stroke-linecap="round" opacity=".65"/>
+            </svg>
+            <span class="lb">고양이</span>
+          </button>
+        </div>
+        <div class="field">
+          <label for="petNameInput">이름</label>
+          <input id="petNameInput" type="text" maxlength="12" placeholder="예: 보리" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="petBreedInput">품종 <span class="opt">(선택)</span></label>
+          <input id="petBreedInput" type="text" maxlength="20" placeholder="예: 골든리트리버" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="petAgeInput">나이</label>
+          <div class="agerow">
+            <input id="petAgeInput" type="text" inputmode="numeric" maxlength="2" placeholder="예: 3" autocomplete="off"/>
+            <span class="unit">살</span>
+          </div>
+        </div>
+        <button class="go" id="setupNext" disabled>다음</button>
+      </div>
+
+      <!-- add another pet (multi-pet household) -->
+      <div class="setup addpet hide" id="addPet" style="display:none">
+        <button class="closebtn" id="addClose" aria-label="닫기">✕</button>
+        <div class="eyebrow">Rolo · 반려동물 추가</div>
+        <h1>새 친구를 등록해요</h1>
+        <div class="collarband" id="collarBand"><span class="cdot"></span>새 목걸이를 인식했어요 · Rolo 목걸이 #2</div>
+        <div class="petpick" id="petPick2">
+          <button class="petopt on" data-species="dog">
+            <svg class="peticon" viewBox="0 0 128 104" fill="none">
+              <path d="M99 46c13-4 23-15 19-26-3-8-13-8-15 0-1 6 4 8 2 14-2 6-8 10-8 10z" fill="#E6E7F0"/>
+              <rect x="80" y="60" width="13" height="33" rx="6.5" fill="#DCDEE9"/>
+              <rect x="40" y="62" width="13" height="31" rx="6.5" fill="#DCDEE9"/>
+              <path d="M34 56c0-15 12-24 30-24h24c17 0 24 12 24 25 0 13-10 19-24 19H56c-15 0-22-6-22-20z" fill="#F4F4F9"/>
+              <rect x="67" y="62" width="14" height="33" rx="7" fill="#F4F4F9"/>
+              <rect x="49" y="64" width="14" height="31" rx="7" fill="#F4F4F9"/>
+              <path d="M68 91h12M50 93h12" stroke="#CBCEDC" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M41 25c12-4 16 6 13 19-2 8-10 9-14 4z" fill="#E1E3EE"/>
+              <ellipse cx="35" cy="43" rx="18" ry="17" fill="#F4F4F9"/>
+              <path d="M17 46c-6 1-8 6-5 11 3 4 11 3 16-1l3-9z" fill="#F4F4F9"/>
+              <path d="M46 45c3 8 9 13 16 14l3-11c-7-1-11-5-13-11z" fill="#E86B9A"/>
+              <path d="M46 45c1 3 3 6 5 8l4-2c-2-2-3-4-4-7z" fill="#D3568A"/>
+              <ellipse cx="15" cy="50" rx="3.5" ry="2.9" fill="#2C2C34"/>
+              <circle cx="31" cy="41" r="2.7" fill="#2C2C34"/>
+              <path d="M27 34c3-2 7-2 10 0" stroke="#D8DBE6" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="lb">강아지</span>
+          </button>
+          <button class="petopt" data-species="cat">
+            <svg class="peticon" viewBox="0 0 128 104" fill="none">
+              <path d="M96 52c11-3 22-7 26-18 3-9-3-17-10-15-5 2-5 8-1 9 5 1 8-2 7 4-1 8-13 11-22 13z" fill="#83879A"/>
+              <rect x="82" y="60" width="12" height="33" rx="6" fill="#71758A"/>
+              <rect x="42" y="62" width="12" height="31" rx="6" fill="#71758A"/>
+              <path d="M36 58c0-15 12-22 28-22h22c17 0 25 11 25 23 0 12-8 17-22 17H58c-14 0-22-5-22-18z" fill="#8A8E9E"/>
+              <rect x="70" y="62" width="13" height="33" rx="6.5" fill="#8A8E9E"/>
+              <rect x="52" y="64" width="13" height="31" rx="6.5" fill="#8A8E9E"/>
+              <path d="M71 91h11M53 93h11" stroke="#6A6E82" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M21 27l1-15 13 10z" fill="#8A8E9E"/>
+              <path d="M35 22l11-11 2 16z" fill="#8A8E9E"/>
+              <path d="M26 22l1-8 7 6z" fill="#6A6E82"/>
+              <path d="M38 20l6-6 1 9z" fill="#6A6E82"/>
+              <ellipse cx="35" cy="41" rx="17" ry="16" fill="#8A8E9E"/>
+              <path d="M17 45c-5 1-7 5-4 9 3 3 10 3 14-1l2-8z" fill="#8A8E9E"/>
+              <path d="M45 44c3 8 9 13 15 14l3-11c-7-1-11-5-13-11z" fill="#F06CA0"/>
+              <ellipse cx="30" cy="40" rx="2.5" ry="3.2" fill="#2C2C34"/>
+              <path d="M14 46l5 2-5 2z" fill="#2C2C34"/>
+              <path d="M15 47H3M16 50l-11 3" stroke="#2C2C34" stroke-width="1" stroke-linecap="round" opacity=".65"/>
+            </svg>
+            <span class="lb">고양이</span>
+          </button>
+        </div>
+        <div class="field">
+          <label for="addNameInput">이름</label>
+          <input id="addNameInput" type="text" maxlength="12" placeholder="예: 나비" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="addBreedInput">품종 <span class="opt">(선택)</span></label>
+          <input id="addBreedInput" type="text" maxlength="20" placeholder="예: 코리안숏헤어" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label for="addAgeInput">나이</label>
+          <div class="agerow">
+            <input id="addAgeInput" type="text" inputmode="numeric" maxlength="2" placeholder="예: 2" autocomplete="off"/>
+            <span class="unit">살</span>
+          </div>
+        </div>
+        <button class="go" id="addSave" disabled>등록하기</button>
+      </div>
+
+      <!-- onboarding -->
+      <div class="onboard" id="onboard">
+        <svg id="turtleOb" viewBox="0 0 200 150">
+          <ellipse cx="100" cy="132" rx="56" ry="8" fill="#000" opacity="0.14"/>
+          <ellipse cx="100" cy="86" rx="54" ry="44" fill="#F3EEE3" stroke="#fff" stroke-width="2"/>
+          <path d="M100 44 q0 42 0 82 M74 48 q-11 38 4 76 M126 48 q11 38 -4 76" fill="none" stroke="#D8CDB8" stroke-width="1.2" opacity=".7"/>
+          <circle cx="100" cy="52" r="6" fill="#F6EFDD" stroke="#E39A3B" stroke-width="2"/>
+          <circle cx="100" cy="52" r="2.2" fill="#E39A3B"/>
+          <rect x="72" y="76" width="56" height="34" rx="16" fill="#2A2E33"/>
+          <circle cx="88" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+          <circle cx="112" cy="93" r="8.5" fill="none" stroke="#EAF2FF" stroke-width="3.4"/>
+          <circle cx="88" cy="93" r="2.2" fill="#EAF2FF"/>
+          <circle cx="112" cy="93" r="2.2" fill="#EAF2FF"/>
+        </svg>
+        <div class="eyebrow">Rolo</div>
+        <h1 id="obTitle">보리를 알아가는 중이에요</h1>
+        <p id="obText">반려동물은 저마다 평소 심박이 달라요. Rolo가 보리만의 <b style="color:#fff">정상 기준선</b>을 학습해, 헛알람 없이 진짜 이상만 알려드려요.</p>
+        <div class="learnbar"><i></i></div>
+        <div class="lp">기준선 학습 12일째 · 87% 완료</div>
+        <button class="go" id="startBtn">보리 상태 보기</button>
+      </div>
+
+    </div><!-- /app -->
+
+    <!-- tabbar -->
+    <nav class="tabbar" id="tabbar">
+      <button class="tab on" data-tab="home"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg><span>홈</span></button>
+      <button class="tab" data-tab="report"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 19V5"/><path d="M5 19h14"/><path d="M8 15l3-4 3 2 4-6" stroke-linecap="round"/></svg><span>리포트</span></button>
+      <button class="tab" data-tab="remote"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="8" width="18" height="9" rx="4"/><path d="M8 12.5h2M15 11v3M16.5 12.5h-3" stroke-linecap="round"/></svg><span>원격</span></button>
+      <button class="tab" data-tab="care"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20s-7-4.5-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.5-7 9-7 9z"/></svg><span>케어</span></button>
+      <button class="tab" data-tab="alerts"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8z"/><path d="M10.5 21a2 2 0 0 0 3 0"/></svg><span>알림</span></button>
+    </nav>
+
+  </div><!-- /phone -->
+  <div style="color:var(--muted);font-size:12px;font-weight:600;text-align:center;max-width:360px;line-height:1.5">
+    탭·버튼·모드를 눌러보세요. 심박·시간 데이터는 시연용으로 실시간 시뮬레이션됩니다.
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+
+  /* ---- navigation ---- */
+  function setScreen(name){
+    $$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+    $$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+    const sc=$('.screen.active'); if(sc) sc.scrollTop=0;
+  }
+  $('#tabbar').addEventListener('click',e=>{const b=e.target.closest('.tab'); if(b) setScreen(b.dataset.tab);});
+  $$('[data-goto]').forEach(el=>el.addEventListener('click',()=>setScreen(el.dataset.goto)));
+
+  /* ---- toast ---- */
+  let tT;
+  function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),1700);}
+
+  /* ---- korean particle helper ---- */
+  function hasBatchim(str){
+    if(!str) return false;
+    const c=str.charCodeAt(str.length-1);
+    if(c<0xAC00||c>0xD7A3) return false;
+    return (c-0xAC00)%28!==0;
+  }
+  const josa=(w,withB,withoutB)=>w+(hasBatchim(w)?withB:withoutB);
+
+  /* fully remove a full-screen overlay after its fade so it can't intercept taps */
+  function hideOverlay(el){ el.classList.add('hide'); setTimeout(()=>{ el.style.display='none'; }, 520); }
+
+  /* ---- device connection (very first run) ---- */
+  const connectScreen=$('#connect');
+  // auto-discover the device shortly after launch
+  setTimeout(()=>{
+    connectScreen.classList.add('found');
+    $('#connTitle').textContent='새 기기를 찾았어요';
+    $('#connDesc').textContent='아래 Rolo 기기를 연결하면 설정을 시작할 수 있어요.';
+  },1700);
+  $('#connectBtn').addEventListener('click',()=>{
+    const b=$('#connectBtn'); b.disabled=true; b.textContent='연결 중…';
+    setTimeout(()=>{
+      $('#connTitle').textContent='연결 완료!';
+      $('#connDesc').textContent='Rolo 기기가 연결됐어요. 이제 반려동물을 등록할게요.';
+      b.textContent='연결됨 ✓';
+      setTimeout(()=>hideOverlay(connectScreen),850);
+    },1400);
+  });
+
+  /* ---- pets (multi-pet household) ---- */
+  const SPECIES={
+    dog:{label:'강아지', emoji:'🐕', cam:'🐕‍🦺'},
+    cat:{label:'고양이', emoji:'🐈', cam:'🐈'}
+  };
+  const DOTS=['#F5811E','#2E9DBE','#E36AA0','#7B9E3A','#B06CD8'];
+  let pets=[]; let curPet=0;
+
+  function applyPet(){
+    const p=pets[curPet]; if(!p) return;
+    const sp=SPECIES[p.species], n=p.name, kind=p.breed||sp.label;
+    $('#petAvatar').textContent=sp.emoji;
+    $('#petName').textContent=n;
+    $('#petMeta').textContent=kind+' · '+p.age+'살';
+    $('#camScene').textContent=sp.cam;
+    $('#reportTitle').textContent=n+'의 지표';
+  }
+  function personalizeOnboarding(p){
+    const sp=SPECIES[p.species], n=p.name;
+    $('#obTitle').textContent=josa(n,'을','를')+' 알아가는 중이에요';
+    $('#obText').innerHTML=josa(sp.label,'은','는')+' 저마다 평소 심박이 달라요. Rolo가 '+n+'만의 <b style="color:#fff">정상 기준선</b>을 학습해, 헛알람 없이 진짜 이상만 알려드려요.';
+    $('#startBtn').textContent=n+' 상태 보기';
+  }
+  function renderSwitch(){
+    const el=$('#petSwitch'); if(!el) return;
+    el.innerHTML=pets.map((p,i)=>
+      '<button class="pchip'+(i===curPet?' on':'')+'" data-i="'+i+'"><span class="pdot" style="background:'+DOTS[i%DOTS.length]+'"></span>'+p.name+'</button>'
+    ).join('')+'<button class="pchip add" id="addPetBtn">＋ 추가</button>';
+  }
+  $('#petSwitch').addEventListener('click',e=>{
+    if(e.target.closest('#addPetBtn')){ openAddPet(); return; }
+    const c=e.target.closest('.pchip[data-i]'); if(!c) return;
+    if(+c.dataset.i===curPet) return;
+    curPet=+c.dataset.i; applyPet(); renderSwitch();
+    toast(pets[curPet].name+'(으)로 전환했어요');
+  });
+
+  // keep an input digits-only (max 2)
+  function digitsOnly(inp){ inp.addEventListener('input',()=>{ const c=inp.value.replace(/[^0-9]/g,'').slice(0,2); if(c!==inp.value) inp.value=c; }); }
+
+  /* ---- first-run setup ---- */
+  const setupNext=$('#setupNext'), nameIn=$('#petNameInput'), breedIn=$('#petBreedInput'), ageIn=$('#petAgeInput');
+  let setupSpecies='dog';
+  $$('#petPick .petopt').forEach(b=>b.addEventListener('click',()=>{
+    $$('#petPick .petopt').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); setupSpecies=b.dataset.species;
+  }));
+  function validateSetup(){ setupNext.disabled=!(nameIn.value.trim().length>0 && ageIn.value.trim()!==''); }
+  nameIn.addEventListener('input',validateSetup);
+  breedIn.addEventListener('input',validateSetup);
+  ageIn.addEventListener('input',validateSetup);
+  digitsOnly(ageIn);
+
+  setupNext.addEventListener('click',()=>{
+    const p={species:setupSpecies, name:nameIn.value.trim(), breed:breedIn.value.trim(), age:Math.max(0,Math.min(30,parseInt(ageIn.value,10)||0)), collar:1};
+    pets=[p]; curPet=0;
+    applyPet(); personalizeOnboarding(p); renderSwitch();
+    hideOverlay($('#setup'));
+  });
+
+  /* ---- add another pet (multi-pet) ---- */
+  const addSave=$('#addSave'), addNameIn=$('#addNameInput'), addBreedIn=$('#addBreedInput'), addAgeIn=$('#addAgeInput');
+  let addSpecies='dog';
+  $$('#petPick2 .petopt').forEach(b=>b.addEventListener('click',()=>{
+    $$('#petPick2 .petopt').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); addSpecies=b.dataset.species;
+  }));
+  function validateAdd(){ addSave.disabled=!(addNameIn.value.trim().length>0 && addAgeIn.value.trim()!==''); }
+  addNameIn.addEventListener('input',validateAdd);
+  addBreedIn.addEventListener('input',validateAdd);
+  addAgeIn.addEventListener('input',validateAdd);
+  digitsOnly(addAgeIn);
+
+  function openAddPet(){
+    addSpecies='dog';
+    $$('#petPick2 .petopt').forEach((x,i)=>x.classList.toggle('on',i===0));
+    addNameIn.value=''; addBreedIn.value=''; addAgeIn.value=''; addSave.disabled=true;
+    $('#collarBand').innerHTML='<span class="cdot"></span>새 목걸이를 인식했어요 · Rolo 목걸이 #'+(pets.length+1);
+    const el=$('#addPet'); el.style.display=''; requestAnimationFrame(()=>el.classList.remove('hide'));
+  }
+  function closeAddPet(){ const el=$('#addPet'); el.classList.add('hide'); setTimeout(()=>{el.style.display='none';},520); }
+  $('#addClose').addEventListener('click',closeAddPet);
+  addSave.addEventListener('click',()=>{
+    const p={species:addSpecies, name:addNameIn.value.trim(), breed:addBreedIn.value.trim(), age:Math.max(0,Math.min(30,parseInt(addAgeIn.value,10)||0)), collar:pets.length+1};
+    pets.push(p); curPet=pets.length-1;
+    applyPet(); renderSwitch(); closeAddPet();
+    toast(p.name+' 등록 완료! 목걸이 #'+p.collar+' 연결됨 🎉');
+  });
+
+  /* ---- onboarding ---- */
+  $('#startBtn').addEventListener('click',()=>hideOverlay($('#onboard')));
+
+  /* ---- live heart rate ---- */
+  const baseHR=74, circ=283;
+  function tickHR(){
+    const hr=Math.round(baseHR+(Math.sin(Date.now()/2600)*4)+(Math.random()*4-2));
+    $('#hr').textContent=hr;
+    const frac=Math.min(1,Math.max(0,(hr-55)/50));
+    $('#hrArc').setAttribute('stroke-dashoffset', (circ*(1-frac*0.78)).toFixed(0));
+  }
+  setInterval(tickHR,1600); tickHR();
+
+  /* mini bars on hero */
+  const mb=$('#miniBars');
+  for(let i=0;i<16;i++){const b=document.createElement('i');b.style.height=(6+Math.abs(Math.sin(i/2))*18).toFixed(0)+'px';mb.appendChild(b);}
+
+  /* ---- live clock on cam ---- */
+  function tickClock(){const d=new Date();$('#camTs').textContent=d.toLocaleTimeString('ko-KR',{hour12:false});}
+  setInterval(tickClock,1000); tickClock();
+
+  /* ---- quick actions / remote buttons ---- */
+  let treats=3, batt=82;
+
+  /* ---- activity calories (diet) ---- */
+  let calories=85; const goalCal=200;
+  function renderCalories(){
+    const num=$('#kcalNum'); if(!num) return;
+    num.textContent=calories;
+    $('#kbarFill').style.width=Math.min(100,Math.round(calories/goalCal*100))+'%';
+    if(calories>=goalCal){
+      $('#kcalTip').textContent='🎉 오늘 활동 목표 달성! 건강 체중 유지에 딱 좋아요.';
+    }else{
+      $('#kcalTip').textContent='🔥 목표까지 '+(goalCal-calories)+' kcal · 조금 더 놀아볼까요?';
+    }
+  }
+  renderCalories();
+
+  function doAction(a){
+    if(a==='treat'){treats++;toast('간식을 줬어요 🦴 (오늘 '+treats+'회)');}
+    else if(a==='play'){
+      const burn=25+Math.round(Math.random()*18);   // 25~43 kcal 소모
+      calories+=burn; renderCalories();
+      toast('놀이 완료! 🔥 '+burn+' kcal 소모 · 오늘 '+calories+' kcal');
+    }
+    else if(a==='cam'){setScreen('remote');toast('실시간 영상으로 이동');}
+    else if(a==='call'){toast('보리를 부르는 중… 💬');}
+    else if(a==='ack'){toast('기록해 두었어요');}
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('[data-do]'); if(a) doAction(a.dataset.do);
+    const mv=e.target.closest('[data-move]'); if(mv) toast('로봇 이동: '+mv.dataset.move);
+  });
+
+  /* ---- mode toggle (형태변환) ---- */
+  const hints={play:'아르마딜로처럼 둥글게 말려 보리와 굴러 놀아줘요.',measure:'다리를 펴고 낮게 다가가 조용히 측정해요.'};
+  $$('.modebtn').forEach(b=>b.addEventListener('click',()=>{
+    $$('.modebtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    const m=b.dataset.mode;
+    $('#modeHint').textContent=hints[m];
+    const pill=$('#modePill');
+    pill.textContent=m==='play'?'공 모드':'다리 펼침';
+    pill.className='pill '+(m==='play'?'ok':'warn');
+    // form transform: ball(legs tucked) <-> legs extended
+    const legs=$('#roloLegs'),arcs=$('#rollArcs'),body=$('#roloBody');
+    if(m==='play'){legs.style.opacity='0';arcs.style.opacity='1';body.style.transform='translateY(7px)';$('#sensorGlow').style.opacity='.35';}
+    else{legs.style.opacity='1';arcs.style.opacity='0';body.style.transform='translateY(0)';$('#sensorGlow').style.opacity='1';}
+    toast(m==='play'?'공 모드로 전환 · 놀이':'다리 펼침 · 측정 시작');
+  }));
+  /* battery slow drain for realism */
+  setInterval(()=>{batt=Math.max(60,batt-1);$('#battTxt').textContent='배터리 '+batt+'%';},9000);
+
+  /* ---- alerts expand ---- */
+  $$('[data-alert]').forEach(al=>al.addEventListener('click',e=>{
+    if(e.target.closest('[data-vet]')||e.target.closest('[data-hosp]')||e.target.closest('[data-do]'))return;
+    al.classList.toggle('open');
+  }));
+  /* vet sheet */
+  document.addEventListener('click',e=>{if(e.target.closest('[data-vet]'))$('#vetOverlay').classList.add('show');});
+  $('#vetClose').addEventListener('click',()=>$('#vetOverlay').classList.remove('show'));
+  $('#vetOverlay').addEventListener('click',e=>{if(e.target.id==='vetOverlay')$('#vetOverlay').classList.remove('show');});
+
+  /* hospital finder sheet */
+  const HOSPITALS=[
+    {name:'24시 우리동물메디컬센터', dist:'0.8km', hours:'24시간 진료', tag:'24시', night:true, tel:'02-1234-5678'},
+    {name:'행복동물병원', dist:'1.4km', hours:'진료 중 · ~21:00', tag:'진료중', night:false, tel:'02-2345-6789'},
+    {name:'스마일 애니멀 클리닉', dist:'2.1km', hours:'진료 중 · ~20:00', tag:'진료중', night:false, tel:'02-3456-7890'},
+  ];
+  $('#hospList').innerHTML=HOSPITALS.map(h=>`
+    <div class="hosp">
+      <div class="hinfo">
+        <div class="hname">${h.name} <span class="htag ${h.night?'night':''}">${h.tag}</span></div>
+        <div class="hmeta">${h.dist} · ${h.hours}</div>
+      </div>
+      <button class="hcall" data-tel="${h.name}">☎ 전화</button>
+    </div>`).join('');
+  document.addEventListener('click',e=>{if(e.target.closest('[data-hosp]'))$('#hospOverlay').classList.add('show');});
+  $('#hospClose').addEventListener('click',()=>$('#hospOverlay').classList.remove('show'));
+  $('#hospOverlay').addEventListener('click',e=>{if(e.target.id==='hospOverlay')$('#hospOverlay').classList.remove('show');});
+  $('#hospList').addEventListener('click',e=>{const c=e.target.closest('[data-tel]'); if(c)toast(c.dataset.tel+' 전화 연결 중… ☎');});
+
+  /* ---- report metrics ---- */
+  const DATA={
+    day:{
+      summary:'오늘 보리의 지표는 대부분 <b style="color:var(--brand)">평소 범위 안</b>에 있어요. 절대 수치보다 <b>기준선 대비 변화</b>를 함께 봐요.',
+      m:[
+        {n:'안정 시 심박',v:'74',u:'bpm',base:'평소 68–80',t:'flat',tl:'안정',d:[72,75,73,76,74,72,74,73]},
+        {n:'심박변이도 (HRV)',v:'높음',u:'',base:'회복력 좋음',t:'flat',tl:'좋음',d:[40,44,42,46,48,45,47,49]},
+        {n:'호흡수',v:'22',u:'회/분',base:'평소 18–26',t:'flat',tl:'안정',d:[21,23,22,24,22,21,23,22]},
+        {n:'산소포화도',v:'97',u:'%',base:'평소 96–98',t:'flat',tl:'정상',d:[97,96,97,98,97,97,96,97]},
+        {n:'활동량',v:'4.2',u:'천 보',base:'평소 3.5–5.0',t:'flat',tl:'보통',d:[30,55,40,70,50,62,45,58]},
+      ]},
+    week:{
+      summary:'이번 주 심박·산소포화도는 안정적이지만, <b style="color:#B4711B">활동량이 후반부에 감소</b>했어요. 다음 주 추이를 지켜봐요.',
+      m:[
+        {n:'안정 시 심박',v:'75',u:'bpm',base:'평소 68–80',t:'flat',tl:'안정',d:[73,74,76,75,74,77,75]},
+        {n:'심박변이도 (HRV)',v:'양호',u:'',base:'회복력 유지',t:'flat',tl:'양호',d:[46,44,45,43,45,44,46]},
+        {n:'호흡수',v:'23',u:'회/분',base:'평소 18–26',t:'flat',tl:'안정',d:[22,23,22,24,23,22,23]},
+        {n:'산소포화도',v:'96',u:'%',base:'평소 96–98',t:'down',tl:'하단',d:[97,97,96,97,96,96,95]},
+        {n:'활동량',v:'-18',u:'%',base:'기준선 대비',t:'up',tl:'감소',d:[60,58,55,50,44,40,38]},
+      ]},
+    month:{
+      summary:'한 달간 큰 이상은 없었어요. 계절이 바뀌며 <b>활동량이 완만히 늘었고</b> 나머지 지표는 기준선 안에서 안정적이에요.',
+      m:[
+        {n:'안정 시 심박',v:'74',u:'bpm',base:'평소 68–80',t:'flat',tl:'안정',d:[75,74,74,73,74,75,74,73]},
+        {n:'심박변이도 (HRV)',v:'좋음',u:'',base:'회복력 좋음',t:'flat',tl:'좋음',d:[43,45,46,47,46,48,47,49]},
+        {n:'호흡수',v:'22',u:'회/분',base:'평소 18–26',t:'flat',tl:'안정',d:[23,22,23,22,22,23,22,22]},
+        {n:'산소포화도',v:'97',u:'%',base:'평소 96–98',t:'flat',tl:'정상',d:[96,97,97,97,98,97,97,97]},
+        {n:'활동량',v:'+12',u:'%',base:'기준선 대비',t:'flat',tl:'증가',d:[40,44,48,50,55,58,60,64]},
+      ]},
+  };
+  function spark(d,trend){
+    const w=92,h=46,pad=6, mn=Math.min(...d), mx=Math.max(...d), rng=(mx-mn)||1;
+    const pts=d.map((v,i)=>[pad+i*((w-2*pad)/(d.length-1)), h-pad-((v-mn)/rng)*(h-2*pad)]);
+    const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const band=`M${pad} ${h*0.32} L${w-pad} ${h*0.32} L${w-pad} ${h*0.68} L${pad} ${h*0.68} Z`;
+    const col=trend==='up'?'#E0862B':trend==='down'?'#6B7B86':'#F5811E';
+    const last=pts[pts.length-1];
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <path d="${band}" fill="#F5811E14"/>
+      <path d="${line}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.2" fill="${col}"/>
+    </svg>`;
+  }
+  function renderReport(p){
+    const set=DATA[p];
+    $('#reportSummary').innerHTML=set.summary;
+    $('#metricList').innerHTML=set.m.map(m=>`
+      <div class="card metric">
+        <div class="mleft">
+          <div class="mname">${m.n}</div>
+          <div class="mval">${m.v}<u>${m.u}</u></div>
+          <div class="mbase"><span class="trend ${m.t}">${m.tl}</span>${m.base}</div>
+        </div>
+        <div class="spark">${spark(m.d,m.t)}</div>
+      </div>`).join('');
+  }
+  $('#periodSeg').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    $$('#periodSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    renderReport(b.dataset.p);
+  });
+  renderReport('day');
+})();
+</script>
+</body>
+</html>
