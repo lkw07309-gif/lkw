@@ -37,8 +37,10 @@
     box-shadow:0 10px 40px rgba(0,0,0,.5);
     display:flex; align-items:center; justify-content:center;
   }
-  .slide { display:none; width:100%; height:100%; }
+  .slide { display:none; width:100%; height:100%; position:relative; }
   .slide.active { display:flex; align-items:center; justify-content:center; }
+  /* 영상 슬라이드는 좌우 넘김 클릭영역보다 위에 두어 재생 버튼이 눌리게 함 */
+  .slide.vid.active { z-index:3; }
   .slide img, .slide video { max-width:100%; max-height:100%; object-fit:contain; display:block; }
 
   /* 클릭 영역 (좌/우 넘기기) */
@@ -75,11 +77,11 @@
         <div class="slide"><img src="media/image4.png" alt="슬라이드 4" /></div>
         <div class="slide"><img src="media/image5.png" alt="슬라이드 5" /></div>
         <div class="slide"><img src="media/image6.png" alt="슬라이드 6" /></div>
-        <div class="slide">
-          <video src="media/VAHOSK5qjvs.mp4" poster="media/image7.jpeg" controls playsinline preload="none"></video>
+        <div class="slide vid">
+          <video src="media/VAHOSK5qjvs.mp4" poster="media/image7.jpeg" controls playsinline preload="metadata"></video>
         </div>
-        <div class="slide">
-          <video src="media/VAHOSGxEj_0.mp4" poster="media/image8.jpeg" controls playsinline preload="none"></video>
+        <div class="slide vid">
+          <video src="media/VAHOSGxEj_0.mp4" poster="media/image8.jpeg" controls playsinline preload="metadata"></video>
         </div>
       </div>
     </div>
